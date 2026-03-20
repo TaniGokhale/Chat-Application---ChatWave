@@ -1,28 +1,42 @@
 const Message = require("../models/Message")
 
-exports.sendMessage = async(req,res)=>{
-
+exports.sendMessage = async (req,res)=>{
 try{
 
-const {senderId,receiverId,message} = req.body
+const { senderId, receiverId, message } = req.body
 
-if(!senderId || !receiverId || !message){
-return res.status(400).json({error:"Missing fields"})
-}
-
-const newMessage = await Message.create({
+const newMessage = new Message({
 senderId,
 receiverId,
 message
 })
 
+await newMessage.save()
+
 res.json(newMessage)
 
 }catch(error){
-
 console.log(error)
-
 res.status(500).json({error:"Server error"})
 }
+}
 
+exports.getMessages = async (req,res)=>{
+try{
+
+const { senderId, receiverId } = req.params
+
+const messages = await Message.find({
+$or:[
+{senderId,receiverId},
+{senderId:receiverId,receiverId:senderId}
+]
+})
+
+res.json(messages)
+
+}catch(error){
+console.log(error)
+res.status(500).json({error:"Server error"})
+}
 }
