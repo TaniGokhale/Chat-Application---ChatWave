@@ -1,0 +1,36 @@
+body{
+  /* border: 2px solid rgb(211, 238, 8); */
+  height:600px;
+  width: 100%;
+  
+}
+.user {
+  /* border:  2px solid rgb(21, 146, 191); */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  margin: 6px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s; 
+  width: 280px;
+  box-shadow: rgba(236, 125, 184, 0.247) 0px 48px 100px 0px;
+}
+
+.user:hover {
+  background: #ff4da6;
+}
+
+.user img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.user span {
+  /* border: 1px solid blueviolet; */
+  font-size: 14px;
+  color: white;
+  
+}

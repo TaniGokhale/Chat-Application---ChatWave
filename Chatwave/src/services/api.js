@@ -24,4 +24,13 @@ export const getMessages = (senderId,receiverId)=>{
 return API.get(`/messages/${senderId}/${receiverId}`)
 }
 
+
+export const sendFile = (formData) => {
+  return API.post("/messages/send-file", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data"
+    }
+  })
+}
+
 export default API

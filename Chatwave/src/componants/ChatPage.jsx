@@ -1,20 +1,35 @@
-import Sidebar from "../components/Sidebar"
-import ChatBox from "../components/ChatBox"
 import { useState } from "react"
+import Sidebar from "../componants/Sidebar"
+import Chatbox from "../componants/Chatbox"
+import "../styles/ChatPage.css"
 
-function ChatPage(){
+function ChatPage() {
 
-const [receiver,setReceiver] = useState(null)
+  const [receiver, setReceiver] = useState(null)
 
-return(
-<div className="chat-container">
+  return (
+    <div className="chat-container">
 
-<Sidebar setReceiver={setReceiver}/>
-<ChatBox receiver={receiver}/>
+      {/*  USER LIST SCREEN */}
+      {!receiver && (
+        <div className="user-list-screen">
+          <h2>💬 Chats</h2>
+          <Sidebar setReceiver={setReceiver} />
+        </div>
+      )}
 
-</div>
-)
+      {/* CHAT SCREEN */}
+      {receiver && (
+        <div className="chat-screen">
+          <Chatbox 
+            receiver={receiver} 
+            setReceiver={setReceiver} 
+          />
+        </div>
+      )}
 
+    </div>
+  )
 }
 
 export default ChatPage

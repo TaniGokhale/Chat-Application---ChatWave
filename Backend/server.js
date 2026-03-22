@@ -3,7 +3,7 @@ const cors = require("cors");
 const http = require("http");
 const dotenv = require("dotenv");
 
-const connectDB = require("./config/db"); // ⭐ add this
+const connectDB = require("./config/db"); 
 
 const authRoutes = require("./routes/authRoutes");
 const messageRoutes = require("./routes/messageRoutes");
@@ -12,7 +12,7 @@ const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();
 
-connectDB(); // ⭐ connect database
+connectDB(); 
 
 const app = express();
 
@@ -22,7 +22,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/users", userRoutes);
-
+app.use("/upload", express.static("upload"))
 app.get("/", (req, res) => {
   res.send("ChatWave API running...");
 });

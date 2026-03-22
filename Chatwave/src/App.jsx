@@ -13,16 +13,22 @@ return (
 
 <Router>
 
-<Navbar/>   
+<div className="app-container">
+<Navbar/>
+
+
+<div className="main-content">
 
 <Routes>
-
 <Route path="/" element={ token ? <ChatPage/> : <Navigate to="/login"/> } />
 <Route path="/login" element={<Login/>} />
 <Route path="/signup" element={<Signup/>} />
 <Route path="/chat" element={ token ? <ChatPage/> : <Navigate to="/login"/> } />
-
 </Routes>
+
+</div>
+
+</div>
 
 </Router>
 
