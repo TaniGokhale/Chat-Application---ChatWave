@@ -16,10 +16,9 @@ const currentUserId = localStorage.getItem("userId")
 useEffect(() => {
   fetchUsers()
 
-  // 🔥 SOCKET LISTENER
   socket.on("receiveMessage", (data) => {
 
-    // unread count increase
+    
     if (data.senderId !== currentUserId) {
       setUnreadCounts(prev => ({
         ...prev,
@@ -27,7 +26,7 @@ useEffect(() => {
       }))
     }
 
-    // update latest time
+   
     setLastMsgTime(prev => ({
       ...prev,
       [data.senderId]: new Date()
@@ -54,7 +53,7 @@ const fetchUsers = async () => {
 
         timeMap[user._id] = new Date(lastMsg.createdAt)
 
-        // 🔥 count unread
+        
         const unread = msgs.filter(
           m => m.senderId === user._id && !m.seen
         ).length
@@ -72,7 +71,6 @@ const fetchUsers = async () => {
   setUnreadCounts(unreadMap)
   setLastMsgTime(timeMap)
 
-  // 🔥 sort users (latest first)
   const sorted = usersData.sort((a, b) => {
     return (timeMap[b._id] || 0) - (timeMap[a._id] || 0)
   })
@@ -92,7 +90,7 @@ return (
     onClick={()=>{
       setReceiver(user)
 
-      // 🔥 reset unread on click
+      
       setUnreadCounts(prev => ({
         ...prev,
         [user._id]: 0
@@ -101,7 +99,7 @@ return (
   >
 
     <img 
-      src={user.profilePic || "https://i.pravatar.cc/40"} 
+      src={user.profilePic || "https://static.vecteezy.com/system/resources/previews/019/879/186/non_2x/user-icon-on-transparent-background-free-png.png"} 
       alt=""
     />
 
@@ -111,7 +109,7 @@ return (
       {user.name}
     </span>
 
-    {/* 🔥 unread count badge */}
+    
     {unreadCounts[user._id] > 0 && (
       <span style={{
         marginLeft: "auto",

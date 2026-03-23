@@ -9,7 +9,6 @@ function Profile({ user, onBack }) {
   return (
     <div className="profile-container">
 
-      {/* BACK */}
       <button className="profile-back" onClick={onBack}>
         ← Back
       </button>
@@ -18,7 +17,7 @@ function Profile({ user, onBack }) {
       <div className="profile-card">
 
         <img
-          src={user.profilePic || "https://i.pravatar.cc/150"}
+          src={user.profilePic || "https://static.vecteezy.com/system/resources/previews/019/879/186/non_2x/user-icon-on-transparent-background-free-png.png"}
           alt=""
           className="profile-img"
         />

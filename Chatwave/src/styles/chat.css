@@ -1,15 +1,14 @@
 .chat-wrapper {
-  /* height: calc(100vh - 60px); */
   display: flex;
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
-  border: 2px solid rgb(169, 201, 231);
-  
+  /* border: 2px solid rgb(169, 201, 231); */
+
 }
 
 .card {
-  
+  /* border: 2px solid red; */
   width: 100px;
   height: 550px;
   background: rgba(255,255,255,0.05);
@@ -22,8 +21,8 @@
 }
 
 .app{
-  border: 1px solid orange;
+    /* border: 1px solid orange; */
   display: flex;
   gap: 15px;
-  height: 560px;
+  height: 520px;
 }

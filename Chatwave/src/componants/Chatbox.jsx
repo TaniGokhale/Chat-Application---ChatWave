@@ -1,35 +1,62 @@
 import { useState, useEffect, useRef } from "react"
 import { sendMessage, getMessages, sendFile } from "../services/api"
+import { io } from "socket.io-client"
+import EmojiPicker from "emoji-picker-react"
 import "../styles/ChatBox.css"
 
-function Chatbox({ receiver, setReceiver, openProfile }) {
+const socket = io("http://localhost:5000")
 
-  if (!receiver) {
-    return <div className="empty">Select user</div>
-  }
+function Chatbox({ receiver, openProfile }) {
+
+  if (!receiver) return <div className="empty">Select user</div>
 
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState([])
   const [recording, setRecording] = useState(false)
   const [previewImage, setPreviewImage] = useState(null)
+  const [showEmoji, setShowEmoji] = useState(false)
+  const [typingUser, setTypingUser] = useState("")
+  const [onlineUsers, setOnlineUsers] = useState([])
 
   const mediaRecorderRef = useRef(null)
-
   const senderId = localStorage.getItem("userId")
 
   useEffect(() => {
-    if (receiver) {
-      loadMessages()
+    loadMessages()
+
+    socket.emit("join", senderId)
+
+    socket.on("onlineUsers", (data) => {
+      setOnlineUsers(data)
+    })
+
+    socket.on("receiveMessage", (data) => {
+      if (
+        data.senderId === receiver._id ||
+        data.receiverId === receiver._id
+      ) {
+        setMessages(prev => [...prev, data])
+      }
+    })
+
+    socket.on("showTyping", (data) => {
+      if (data.senderId === receiver._id) {
+        setTypingUser("Typing...")
+        setTimeout(() => setTypingUser(""), 2000)
+      }
+    })
+
+    return () => {
+      socket.off("receiveMessage")
+      socket.off("showTyping")
+      socket.off("onlineUsers")
     }
+
   }, [receiver])
 
   const loadMessages = async () => {
-    try {
-      const res = await getMessages(senderId, receiver._id)
-      setMessages(res.data)
-    } catch (err) {
-      console.log(err)
-    }
+    const res = await getMessages(senderId, receiver._id)
+    setMessages(res.data)
   }
 
   const handleSend = async () => {
@@ -41,13 +68,10 @@ function Chatbox({ receiver, setReceiver, openProfile }) {
       message
     }
 
-    try {
-      await sendMessage(msgData)
-      loadMessages()
-      setMessage("")
-    } catch (err) {
-      console.log(err)
-    }
+    await sendMessage(msgData)
+    socket.emit("sendMessage", msgData)
+
+    setMessage("")
   }
 
   const handleFile = async (e) => {
@@ -59,12 +83,7 @@ function Chatbox({ receiver, setReceiver, openProfile }) {
     formData.append("senderId", senderId)
     formData.append("receiverId", receiver._id)
 
-    try {
-      await sendFile(formData)
-      loadMessages()
-    } catch (err) {
-      console.log(err)
-    }
+    await sendFile(formData)
   }
 
   const startRecording = async () => {
@@ -77,9 +96,7 @@ function Chatbox({ receiver, setReceiver, openProfile }) {
 
     const chunks = []
 
-    recorder.ondataavailable = (e) => {
-      chunks.push(e.data)
-    }
+    recorder.ondataavailable = (e) => chunks.push(e.data)
 
     recorder.onstop = async () => {
       const blob = new Blob(chunks, { type: "audio/webm" })
@@ -89,12 +106,7 @@ function Chatbox({ receiver, setReceiver, openProfile }) {
       formData.append("senderId", senderId)
       formData.append("receiverId", receiver._id)
 
-      try {
-        await sendFile(formData)
-        loadMessages()
-      } catch (err) {
-        console.log(err)
-      }
+      await sendFile(formData)
     }
   }
 
@@ -110,61 +122,42 @@ function Chatbox({ receiver, setReceiver, openProfile }) {
         <span onClick={openProfile} style={{ cursor: "pointer" }}>
           {receiver.name}
         </span>
+
+        <div style={{ fontSize: "12px", color: "#aaa" }}>
+          {onlineUsers.includes(receiver._id) ? "Online 🟢" : "Offline ⚫"}
+        </div>
+      </div>
+
+      <div style={{ fontSize: "12px", color: "gray", paddingLeft: "10px" }}>
+        {typingUser}
       </div>
 
       <div className="messages">
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={
-              msg.senderId === senderId
-                ? "msg sent"
-                : "msg received"
-            }
-          >
+          <div key={i} className={msg.senderId === senderId ? "msg sent" : "msg received"}>
 
             {msg.message && <div>{msg.message}</div>}
 
             {msg.image && (
-              <img 
-                src={`http://localhost:5000/upload/${msg.image}`} 
-                alt=""
-                style={{ width: "150px", marginTop: "5px", cursor: "pointer" }}
+              <img
+                src={`http://localhost:5000/upload/${msg.image}`}
+                style={{ width: "150px", cursor: "pointer" }}
                 onClick={() => setPreviewImage(`http://localhost:5000/upload/${msg.image}`)}
               />
-            )}
-
-            {msg.file && (
-              <a 
-                href={`http://localhost:5000/upload/${msg.file}`} 
-                target="_blank" 
-                rel="noreferrer"
-              >
-                📄 Download File
-              </a>
             )}
 
             {msg.audio && (
               <audio controls src={`http://localhost:5000/upload/${msg.audio}`} />
             )}
 
-            <div style={{
-              fontSize: "10px",
-              marginTop: "4px",
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: "5px",
-              opacity: 0.7
-            }}>
-              <span>
-                {new Date(msg.createdAt).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit"
-                })}
-              </span>
+            <div style={{ fontSize: "10px", opacity: "0.6" }}>
+              {new Date(msg.createdAt).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
 
               {msg.senderId === senderId && (
-                <span>
+                <span style={{ marginLeft: "5px" }}>
                   {msg.seen ? "✔✔" : "✔"}
                 </span>
               )}
@@ -176,15 +169,31 @@ function Chatbox({ receiver, setReceiver, openProfile }) {
 
       <div className="input-area">
 
-        <input type="file" onChange={handleFile} />
+        <label className="file-btn">
+          📎
+          <input type="file" onChange={handleFile} />
+        </label>
+
+        <button onClick={() => setShowEmoji(prev => !prev)}>😊</button>
 
         <input
+          type="text"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value)
+
+            socket.emit("typing", {
+              senderId,
+              receiverId: receiver._id
+            })
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSend()
+          }}
           placeholder="Type message..."
         />
 
-        <button onClick={handleSend}>Send</button>
+        <button onClick={handleSend}>➤</button>
 
         {!recording ? (
           <button onClick={startRecording}>🎤</button>
@@ -194,22 +203,16 @@ function Chatbox({ receiver, setReceiver, openProfile }) {
 
       </div>
 
+      {showEmoji && (
+        <div style={{ position: "absolute", bottom: "70px" }}>
+          <EmojiPicker onEmojiClick={(e) => setMessage(prev => prev + e.emoji)} />
+        </div>
+      )}
+
       {previewImage && (
-        <div 
-          className="image-preview-overlay"
-          onClick={() => setPreviewImage(null)}
-        >
-          <img 
-            src={previewImage} 
-            className="preview-img"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <span 
-            className="close-preview"
-            onClick={() => setPreviewImage(null)}
-          >
-            ✖
-          </span>
+        <div className="image-preview-overlay" onClick={() => setPreviewImage(null)}>
+          <img src={previewImage} className="preview-img" onClick={(e) => e.stopPropagation()} />
+          <span className="close-preview" onClick={() => setPreviewImage(null)}>✖</span>
         </div>
       )}
 

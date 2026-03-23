@@ -13,6 +13,8 @@ message
 
 await newMessage.save()
 
+req.io.emit("receiveMessage", newMessage)
+
 res.json(newMessage)
 
 }catch(error){
@@ -44,6 +46,8 @@ else{
 const newMessage = new Message(newMessageData)
 
 await newMessage.save()
+
+req.io.emit("receiveMessage", newMessage)
 
 res.json(newMessage)
 
